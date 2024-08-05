@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<gz version='1.0'>
+  <executable name='car_world'>
+    <command>gz sim building_robot.sdf</command>
+  </executable>
+  
+  <executable name='key_listener'>
+    <command>gz topic -e -t /keyboard/keypress</command>
+  </executable>
+  
+  <executable name='lidar_node'>
+    <command>./lidar_node/build/lidar_node</command>
+  </executable>
+
+</gz>
