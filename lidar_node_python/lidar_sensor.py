@@ -15,6 +15,11 @@ class Lidar:
         self.data_listener = None
         self.msgs = None
 
+        self._blocked_front = False
+        self._blocked_rear = False
+        self._blocked_left = False
+        self._blocked_right = False
+
         # Storage for particles, each side of vehicle 640 / 4 = 160 particles per side
         self.left_side = None
         self.right_side = None
@@ -22,10 +27,10 @@ class Lidar:
         self.rear_side = None
 
         # Flags uses to check if vehicle is on safe distance from objects
-        self.is_on_safe_position_left = False
-        self.is_on_safe_position_right = False
-        self.is_on_safe_position_front = False
-        self.is_on_safe_position_rear = False
+        self._is_safe_left_side_of_vehicle = False
+        self._is_safe_right_side_of_vehicle = False
+        self._is_safe_front_side_of_vehicle = False
+        self._is_safe_rear_side_of_vehicle = False
 
 
 
@@ -47,7 +52,33 @@ class Lidar:
         except KeyboardInterrupt:
             pass
         print("[INFO] Listening for LIDAR data finished")
+    
+    #         #
+    # GETTERS #
+    #         #
 
+    def get_is_safe_left_side_of_vehicle(self):
+        return self._is_safe_left_side_of_vehicle
+    
+    def get_is_safe_right_side_of_vehicle(self):
+        return self._is_safe_right_side_of_vehicle
+
+    def get_is_safe_front_side_of_vehicle(self):
+        return self._is_safe_front_side_of_vehicle
+    
+    def get_is_safe_rear_side_of_vehicle(self):
+        return self._is_safe_rear_side_of_vehicle
+    
+    def get_is_stopped(self):
+        return self._is_stopped
+    
+
+    #         #
+    # SETTERS #
+    #         #
+
+    def set_is_stopped(self, value):
+        self._is_stopped = value
     
     def collect_lidar_data(self, msg: LaserScan):
         # ============================
@@ -87,17 +118,42 @@ class Lidar:
         self.rear_side = ranges[-80:] + ranges[:80]
 
         
-        self.is_on_safe_position_left = self.analyze_side_of_vehicle(self.left_side, 'left')
-        print(f'[DEBUG] left side is safe: {self.is_on_safe_position_left}')
+        self._is_safe_left_side_of_vehicle = self.analyze_side_of_vehicle(self.left_side, 'left')
+        print(f'[DEBUG] left side is safe: {self._is_safe_left_side_of_vehicle}')
 
-        self.is_on_safe_position_right = self.analyze_side_of_vehicle(self.right_side, 'right')
-        print(f'[DEBUG] right side is safe: {self.is_on_safe_position_right}')
+        self._is_safe_right_side_of_vehicle = self.analyze_side_of_vehicle(self.right_side, 'right')
+        print(f'[DEBUG] right side is safe: {self._is_safe_right_side_of_vehicle}')
 
-        self.is_on_safe_position_front = self.analyze_side_of_vehicle(self.front_side, 'front')
-        print(f'[DEBUG] front side is safe: {self.is_on_safe_position_front}')
+        self._is_safe_front_side_of_vehicle = self.analyze_side_of_vehicle(self.front_side, 'front')
+        print(f'[DEBUG] front side is safe: {self._is_safe_front_side_of_vehicle}')
 
-        self.is_on_safe_position_rear = self.analyze_side_of_vehicle(self.rear_side, 'rear')
-        print(f'[DEBUG] rear side is safe: {self.is_on_safe_position_rear}')
+        self._is_safe_rear_side_of_vehicle = self.analyze_side_of_vehicle(self.rear_side, 'rear')
+        print(f'[DEBUG] rear side is safe: {self._is_safe_rear_side_of_vehicle}')
+
+        if self._is_safe_front_side_of_vehicle:
+            self._blocked_front = False
+        elif not self._is_safe_front_side_of_vehicle and self._blocked_front == False:
+            self._blocked_front = True
+            self.stop_vehicle()
+        
+        if self._is_safe_rear_side_of_vehicle:
+            self._blocked_rear = False
+        elif not self._is_safe_rear_side_of_vehicle and self._blocked_rear == False:
+            self._blocked_rear = True
+            self.stop_vehicle()
+
+        if self._is_safe_left_side_of_vehicle:
+            self._blocked_left = False
+        elif not self._is_safe_left_side_of_vehicle and self._blocked_left == False:
+            self._blocked_left = True
+            self.stop_vehicle()
+
+        if self._is_safe_right_side_of_vehicle:
+            self._blocked_right = False
+        elif not self._is_safe_right_side_of_vehicle and self._blocked_right == False:
+            self._blocked_right = True
+            self.stop_vehicle()
+        
 
         print(f'[DEBUG] PARTICLES ANALYZED')  
 
@@ -105,33 +161,28 @@ class Lidar:
     def analyze_side_of_vehicle(self, particles, side):
         for particle in particles:
             if particle == 'inf':
-                continue
-            if side == 'rear' or side == 'front' and float(particle) <= 1.5:
-                print(f'[DEBUG] Distance on {side} is closer than 0.5')
-                return False         
-            elif float(particle) <= 1:
-                print(f'[DEBUG] Distance on {side} is closer than 0.5')
-                return False                  
-        print(f'[DEBUG] Distance on {side} is bigger than 0.5')        
+                continue        
+            if float(particle) <= 2:
+                print(f'[DEBUG] Distance on {side} is not safe {particle}')
+                return False       
+        print(f'[DEBUG] Distance on {side} is safe {particle}')        
         return True
 
+    def stop_vehicle(self):
+        print(f'[DEBUG] - IN STOP VEHICLE INITIALIZE')
+        node = Node()
+        message = Twist()
+        topic = '/cmd_vel'
+        publisher = node.advertise(topic, Twist)
 
-def stop_vehicle():
-    print(f'[DEBUG] - IN STOP VEHICLE INITIALIZE')
-    node = Node()
-    twist_message = Twist()
-    topic = '/cmd_vel'
-    node_publisher = node.advertise(topic, Twist)
+        message.angular.x = 0.0
+        message.angular.z = 0.0
+        message.linear.x = 0.0
+        message.linear.z = 0.0
+    
+        print(f'[DEBUG] - IN STOP VEHICLE PUBLISH')
 
-    twist_message.angular.x = 0.0
-    twist_message.angular.z = 0.0
-    twist_message.linear.x = 0.0
-    twist_message.linear.z = 0.0
-   
-    twist_message
-    print(f'[DEBUG] - IN STOP VEHICLE PUBLISH')
-
-    if node_publisher.publish(twist_message):
-        print(f'[INFO] Successfully send {twist_message}')
-    else:
-        print(f'[ERROR] Failed to send {twist_message} message')
+        if publisher.publish(message):
+            print(f'[INFO] Successfully send {message}')
+        else:
+            print(f'[ERROR] Failed to send {message} message')
