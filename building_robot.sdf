@@ -332,7 +332,7 @@
 			
 			<!-- LIDAR CONFIG -->
 			<frame name="lidar_frame" attached_to='chassis'>
-    			<pose>0.8 0 0.5 0 0 0</pose>
+    			<pose>0.0 0 0.5 0 0 0</pose>
 			</frame>
 		</model>
 		
