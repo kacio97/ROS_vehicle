@@ -35,6 +35,13 @@ class Lidar:
 
 
     def start_lidar(self):
+        # PL
+        # Uruchamiamy instancje lidara ktory subskrybuje sie na zadany temat
+        # wewnatrz przekazujemy mu 3 parametry w zasadzie najwazniejszy to 'LaserScan'
+        # - LaserScan zawiera informacje o odległościach mierzonych przez skaner laserowy, 
+        # kąty oraz inne parametry związane z detekcją obiektów.
+        # - topic to temat jaki wpisany jest do modelu robota dla fragmentu z LIDAREM
+        # - collect_lidar_data (callback function) to metoda która jest wywoływana po odebraniu wiadomości
         if self.lidar_node.subscribe(LaserScan, self.topic, self.collect_lidar_data):
             print(f'[INFO] Subcribed {self.topic} topic')
         else:
@@ -81,36 +88,29 @@ class Lidar:
         self._is_stopped = value
     
     def collect_lidar_data(self, msg: LaserScan):
-        # ============================
-        # DEBUG PART
-        # ============================
-        # f = open('res2.txt', 'w')
-        # for i in range(len(msg.ranges)):
-        #     f.write(f'| {i} |{msg.ranges[i]}\n')
-        #     print(f'| {i} |{msg.ranges[i]}')
-        # f.close()
-        # ============================
-        
-        # self.particles_analyzer = threading.Thread(target=self.analyze_particles(msg.ranges))
-        # # self.particles_analyzer.daemon = True # Zapewni to zamknięcie wątku po zakończeniu programu głównego.
-        # self.particles_analyzer.start()
-
         self.analyze_particles(msg.ranges)
-
-        # for _msgs in msg.ranges:
-            # print(f'Range - {_msgs}\n')
         
 
     def analyze_particles(self, ranges):
+        # PL
         # Moj pojazd posiada 640 wiazek lasera do analizy tak wiec
         # trzeba podzielic 640 / 4 strony pojazdu co daje nam okolo 160 czastek na strone
-
         # Na podstawie zebranych probek z Gazebo
         # PRÓBKI Z LIDAR
         # 0-80 tył lewy 561 - 640 tył prawy
         # 81-240 prawy bok
         # 241 - 400 środek
         # 401-560 lewy bok
+
+        # ENG
+        # My vehicle has 640 laser beams for analysis, so:
+        # We need to divide 640 by 4 sides of the vehicle, which gives us approximately 160 beams per side.
+        # Based on the collected samples from Gazebo:
+        # LIDAR SAMPLES:
+        # 0-80: rear left, 561-640: rear right
+        #  81-240: right side
+        # 241-400: center
+        # 401-560: left side
         
         self.right_side = ranges[80:240]
         self.left_side = ranges[400:560]
@@ -159,6 +159,16 @@ class Lidar:
 
     
     def analyze_side_of_vehicle(self, particles, side):
+        # PL
+        # Ta metoda analizuje czasteczki pobrane z lidara
+        # nastepnie decyduje czy pojazd znajduje sie
+        # w bezpiecznej odleglosci czy nie
+        # odlegosc <= 2 jest pogladowa i warto by kiedys to zoptymalizowac
+        # pod kadtem prawidlowego decydowania czy pojazd jest bezpieczny
+        # ENG
+        # This method analyzing particles collected from lidar
+        # and decide if distance is safe or not
+        # @return boolean
         for particle in particles:
             if particle == 'inf':
                 continue        
@@ -169,6 +179,11 @@ class Lidar:
         return True
 
     def stop_vehicle(self):
+        # PL
+        # Zatrzymaj pojazd jesli dystans dla wybranej strony pojazdu 
+        # jest mniejszy niz ~1.5 metra
+        # ENG
+        # Stops vehicle if distance in exact side is closer than ~1.5 meter
         print(f'[DEBUG] - IN STOP VEHICLE INITIALIZE')
         node = Node()
         message = Twist()

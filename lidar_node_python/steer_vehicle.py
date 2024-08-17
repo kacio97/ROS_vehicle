@@ -7,14 +7,6 @@ from gz.transport13 import *
 
 from pynput import keyboard
 
-#                  #
-# GLOBAL VARIABLES #
-# INT32 VALUES     #
-up_arrow = 16777235
-down_arrow = 16777237
-left_arrow = 16777234
-right_arrow = 16777236
-
 
 class Vehicle_movement:
     def __init__(self, lidar_instance) -> None:
@@ -51,6 +43,12 @@ class Vehicle_movement:
             return False
 
     def _check_if_region_is_safe(self, direction):
+        # PL
+        # Metoda sprawdzajaca czy dana strona pojazdu jest bezpieczna od przeszkod
+        # dodatkowa forma sprawdzenia przy wysylaniu wiadomosci do pojazdu kiedy ma sie poruszac
+        # ENG
+        # Method to check if a given side of the vehicle is safe from obstacles
+        # An additional form of verification when sending a message to the vehicle for movement
         if direction == 'forward':
             return self.lidar.get_is_safe_front_side_of_vehicle()
         elif direction == 'backward':
@@ -62,6 +60,10 @@ class Vehicle_movement:
         
 
     def move_vehicle(self, direction, key_value):
+        # PL
+        # Poruszanie sie pojazdem ale pod warunkiem ze pojazdowi nie zagraza kolizja
+        # ENG
+        # Moves vehicle if zone is safe 
         print(f'[DEBUG] - START TO MOVE VEHICLE {direction}')
                  
         message = Twist()
