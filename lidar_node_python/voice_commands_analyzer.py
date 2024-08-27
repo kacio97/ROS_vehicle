@@ -4,24 +4,13 @@ from pydub import AudioSegment
 from pydub.playback import play
 
 import tensorflow as tf
-from keras import layers, models
+from keras import layers, models, optimizers
 
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
-
-# y, sr = librosa.load("../samples/forward/forward_1.wav")
-# mel_spec = librosa.feature.melspectrogram(y=y, sr=sr)
-# log_mel_spec = librosa.power_to_db(mel_spec, ref=np.max)
-
-# plt.figure(figsize=(10, 4))
-# librosa.display.specshow(log_mel_spec, sr=sr, x_axis='time', y_axis='mel')
-# plt.colorbar(format='%+2.0f dB')
-# plt.title('Mel Spectrogram')
-# plt.show()
-
 
 
 class Voice_analyzer:
@@ -37,49 +26,61 @@ class Voice_analyzer:
         self.seed = 42
         self.sound_frequency = 16000
         self.model = None
+        self.training_history = None
 
-        try:
-            self.input_data, self.input_labels = self.load_data()
-        except:
-            print(f'[ERROR] Failed to load data into data-parser')
+        # START ANALYZE AND LEARNING PROCESS
+        self.input_data, self.input_labels = self.load_data()
+       
+        self.normalize_data()
 
-        try:
-            self.normalize_data()
-        except:
-            print('[ERROR] Failed to normalize data')
+        self.build_model()
 
-        try:
-            self.build_model()
-        except:
-            print('[ERROR] Failed to build model')
+        self.train_model()
 
-        try:
-            self.train_model()
-            self.rate_model()
-        except:
-            print('[ERROR] Failed to train model')
+        self.rate_model()
         
+
+    def _resize_array(self, spectogram_db, max_shape):
+        # This method helps to fit np.array to the same shape
+        # sub-sample for each audio has unregular count of values
+        # np.array demend from us to set array in regular shape for instance 128x128
+        result = np.zeros(max_shape)
+        shape = spectogram_db.shape
+        slices = tuple(slice(0, min(s, ts)) for s, ts in zip(shape, max_shape))
+        result[slices] = spectogram_db[slices]
+        return result
+
 
     def load_data(self):
         # loads and parses sound samples from wav format into data
         # for model to machine learning
         print('[DEBUG] START loading data')
+        x = []
+        y = []
+        max_shape = (128, 96) # 128 is const, number of samples per one audio, 96 is max of taking values inside of sub-sample
         for index, command in enumerate(self.commands):
-            print(f'[DEBUG] {index} {command}')
-            x = []
-            y = []
+            print(f'[DEBUG] {index} - {command}')
             files = os.listdir(os.path.join(self.samples_path, command))
             print(f'Available files in {command}\n{files}')
             for file in files:
                 file_path = os.path.join(self.samples_path, command, file)
                 print(f'[DEBUG] Analyzing file {file}')
                 audio, _ = librosa.load(file_path, sr=self.sound_frequency)
-                mel_spectogram = librosa.feature.melspectrogram(audio, sr=self.sound_frequency)
+                mel_spectogram = librosa.feature.melspectrogram(y=audio, sr=self.sound_frequency)
+
                 mel_spectogram_db = librosa.power_to_db(mel_spectogram, ref=np.max)
-                x.append(mel_spectogram_db)
+
+                # DEBUG to check how many values per one sub-sample
+                for i in mel_spectogram_db:
+                    print(f'[DEBUG] {file_path} - {len(i)}')
+
+                mel_spectrogram_db_resized = self._resize_array(mel_spectogram_db, max_shape)
+
+                x.append(mel_spectrogram_db_resized)
                 y.append(index)
         
         print(f'[DEBUG] Data parsed successfully')
+
         return (np.array(x), np.array(y))
     
 
@@ -103,6 +104,10 @@ class Voice_analyzer:
         self.input_data_train = self.input_data_train[..., np.newaxis]
         self.input_data_test = self.input_data_test[..., np.newaxis]
 
+        print(f'DUPA {self.input_data_train.shape[1]}')
+
+        print(f'DUPA2 {self.input_data_train.shape[2]}')
+
         self.model = models.Sequential([
             layers.Conv2D(32, (3, 3), activation='relu', input_shape=(self.input_data_train.shape[1], self.input_data_train.shape[2], 1)),
             layers.MaxPooling2D((2, 2)),
@@ -110,7 +115,8 @@ class Voice_analyzer:
             layers.MaxPooling2D((2, 2)),
             layers.Conv2D(64, (3, 3), activation='relu'),
             layers.Flatten(),
-            layers.Dense(64, activation='relu'),
+            layers.Dense(128, activation='relu'),
+            layers.Dropout(0.5),
             layers.Dense(len(self.commands), activation='softmax')])
         
         self.model.compile(optimizer='adam',
@@ -120,12 +126,27 @@ class Voice_analyzer:
     def train_model(self):
         # Training the model on prepared data.
         print(f'[DEBUG] Start model training')
-        self.model.fit(self.input_data_train, self.input_labels_train, epochs=10, validation_data=(self.input_data_test, self.input_labels_test))
+        self.training_history = self.model.fit(self.input_data_train, self.input_labels_train, epochs=30, batch_size=32, validation_data=(self.input_data_test, self.input_labels_test))
         self.model.save('AI.h5')
     
 
     def rate_model(self):
         test_loss, test_acc = self.model.evaluate(self.input_data_test, self.input_labels_test, verbose=2)
+        plt.plot(self.training_history.history['loss'])
+        plt.plot(self.training_history.history['val_loss'])
+        plt.title('Model Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend(['Train', 'Validation'], loc='upper right')
+        plt.show()
+
+        plt.plot(self.training_history.history['accuracy'])
+        plt.plot(self.training_history.history['val_accuracy'])
+        plt.title('Model Accuracy')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+        plt.show()
         print(f'Test accuracy: {test_acc}\nTest loss: {test_loss}')
 
 
