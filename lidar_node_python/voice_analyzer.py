@@ -15,7 +15,7 @@ tf.random.set_seed(seed)
 np.random.seed(seed)
 DATASET_PATH = 'E:/ROS_vehicle/samples/'
 AUTOTUNE = tf.data.AUTOTUNE
-BATCH_SIZE = 64
+BATCH_SIZE = 512
 EPOCHS = 1000
 
 class VoiceAnalyzer:
@@ -129,7 +129,7 @@ class VoiceAnalyzer:
     timescale = np.arange(waveform.shape[0])
     axes[0].plot(timescale, waveform.numpy())
     axes[0].set_title('Waveform')
-    axes[0].set_xlim([0, 64000])
+    axes[0].set_xlim([0, 48000])
     axes[1].set_title('Spectrogram')
 
     self._plot_spectrogram(spectrogram.numpy(), axes[1])
@@ -150,9 +150,9 @@ class VoiceAnalyzer:
     # print(f'[DEBUG] Example file tensor: {self.filenames[0]}')
 
     # Split data into 3 parts 80% train files, 10% per validation and testing
-    self.train_files = self.filenames[:240]
-    self.val_files = self.filenames[240: 240 + 30]
-    self.test_files = self.filenames[-30:]
+    self.train_files = self.filenames[:1200]
+    self.val_files = self.filenames[1200: 1350]
+    self.test_files = self.filenames[-150:]
 
     print(f'[DEBUG] Training set size {len(self.train_files)}')
     print(f'[DEBUG] Validation set size {len(self.val_files)}')
@@ -179,20 +179,19 @@ class VoiceAnalyzer:
       layers.Resizing(32, 32),
       # Normalize.
       norm_layer,
-      layers.Conv2D(32, 3, activation='relu'),
-      layers.Conv2D(64, 3, activation='relu'),
+      layers.Conv2D(32, 3, activation='gelu'), # było relu
+      layers.Conv2D(64, 3, activation='gelu'),
       layers.MaxPooling2D(),
-      layers.Dropout(0.25),
       layers.Flatten(),
-      layers.Dense(128, activation='relu'),
-      layers.Dropout(0.5),
+      layers.Dense(256, activation='gelu'),
+      layers.Dense(512, activation='gelu'),
       layers.Dense(num_labels),
     ])
 
     self.model.summary()
 
     self.model.compile(
-      optimizer=tf.keras.optimizers.Adam(),
+      optimizer=tf.keras.optimizers.AdamW(learning_rate=0.0001),
       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
       metrics=['accuracy'],
     )
@@ -203,7 +202,7 @@ class VoiceAnalyzer:
       self.train_data_set,
       validation_data=self.val_data_set,
       epochs=EPOCHS,
-      callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),)
+      callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=20),)
     self.model.save('AI.h5')
     
 
@@ -262,10 +261,10 @@ class VoiceAnalyzer:
   
 
   def _get_spectrogram(self, waveform):
-    # Zero-padding for an audio waveform with less than 64,000 samples.
-    input_len = 64000
+    # Zero-padding for an audio waveform with less than 48,000 samples.
+    input_len = 48000
     waveform = waveform[:input_len]
-    zero_padding = tf.zeros([64000] - tf.shape(waveform), dtype=tf.float32)
+    zero_padding = tf.zeros([48000] - tf.shape(waveform), dtype=tf.float32) 
     # Cast the waveform tensors' dtype to float32.
     waveform = tf.cast(waveform, dtype=tf.float32)
     # Concatenate the waveform with `zero_padding`, which ensures all audio
