@@ -1,6 +1,5 @@
 import os
 import pathlib
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,11 +16,10 @@ np.random.seed(seed)
 DATASET_PATH = 'E:/ROS_vehicle/samples/'
 AUTOTUNE = tf.data.AUTOTUNE
 BATCH_SIZE = 64
-EPOCHS = 12
+EPOCHS = 1000
 
 class VoiceAnalyzer:
   def __init__(self) -> None:
-   
     self.data_dir = None
     self.commands = None
     self.filenames = None
@@ -33,6 +31,8 @@ class VoiceAnalyzer:
     self.model = None
     self.history = None
 
+
+  def start_analyze(self):
     self.prepare_data_set()
 
     self.waveform_data_set = self.files_data_set.map(map_func=self._get_waveform_and_label, num_parallel_calls=AUTOTUNE)
@@ -150,9 +150,9 @@ class VoiceAnalyzer:
     # print(f'[DEBUG] Example file tensor: {self.filenames[0]}')
 
     # Split data into 3 parts 80% train files, 10% per validation and testing
-    self.train_files = self.filenames[:80]
-    self.val_files = self.filenames[80: 80 + 10]
-    self.test_files = self.filenames[-10:]
+    self.train_files = self.filenames[:240]
+    self.val_files = self.filenames[240: 240 + 30]
+    self.test_files = self.filenames[-30:]
 
     print(f'[DEBUG] Training set size {len(self.train_files)}')
     print(f'[DEBUG] Validation set size {len(self.val_files)}')
@@ -204,6 +204,7 @@ class VoiceAnalyzer:
       validation_data=self.val_data_set,
       epochs=EPOCHS,
       callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),)
+    self.model.save('AI.h5')
     
 
   def show_training_and_validation_loss_curves(self):
@@ -257,8 +258,6 @@ class VoiceAnalyzer:
     parts = tf.strings.split(
     input=file_path,
     sep=os.path.sep)
-    # Note: You'll use indexing here instead of tuple unpacking to enable this
-    # to work in a TensorFlow graph.
     return parts[-2]
   
 
@@ -296,4 +295,4 @@ class VoiceAnalyzer:
     return output_ds
 
 
-VoiceAnalyzer() # RUN VOICE ANALYZER
+VoiceAnalyzer().start_analyze() # RUN VOICE ANALYZER
