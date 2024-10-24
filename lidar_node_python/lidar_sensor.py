@@ -119,16 +119,16 @@ class Lidar:
 
         
         self._is_safe_left_side_of_vehicle = self.analyze_side_of_vehicle(self.left_side, 'left')
-        print(f'[DEBUG] left side is safe: {self._is_safe_left_side_of_vehicle}')
+        # print(f'[DEBUG] left side is safe: {self._is_safe_left_side_of_vehicle}')
 
         self._is_safe_right_side_of_vehicle = self.analyze_side_of_vehicle(self.right_side, 'right')
-        print(f'[DEBUG] right side is safe: {self._is_safe_right_side_of_vehicle}')
+        # print(f'[DEBUG] right side is safe: {self._is_safe_right_side_of_vehicle}')
 
         self._is_safe_front_side_of_vehicle = self.analyze_side_of_vehicle(self.front_side, 'front')
-        print(f'[DEBUG] front side is safe: {self._is_safe_front_side_of_vehicle}')
+        # print(f'[DEBUG] front side is safe: {self._is_safe_front_side_of_vehicle}')
 
         self._is_safe_rear_side_of_vehicle = self.analyze_side_of_vehicle(self.rear_side, 'rear')
-        print(f'[DEBUG] rear side is safe: {self._is_safe_rear_side_of_vehicle}')
+        # print(f'[DEBUG] rear side is safe: {self._is_safe_rear_side_of_vehicle}')
 
         if self._is_safe_front_side_of_vehicle:
             self._blocked_front = False
@@ -155,7 +155,7 @@ class Lidar:
             self.stop_vehicle()
         
 
-        print(f'[DEBUG] PARTICLES ANALYZED')  
+        # print(f'[DEBUG] PARTICLES ANALYZED')  
 
     
     def analyze_side_of_vehicle(self, particles, side):
@@ -173,9 +173,9 @@ class Lidar:
             if particle == 'inf':
                 continue        
             if float(particle) <= 2:
-                print(f'[DEBUG] Distance on {side} is not safe {particle}')
+                # print(f'[DEBUG] Distance on {side} is not safe {particle}')
                 return False       
-        print(f'[DEBUG] Distance on {side} is safe {particle}')        
+        # print(f'[DEBUG] Distance on {side} is safe {particle}')        
         return True
 
     def stop_vehicle(self):

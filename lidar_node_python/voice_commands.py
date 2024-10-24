@@ -16,7 +16,7 @@ import speech_recognition
 RATE = 48000  # (44kHz)
 CHUNK = 1024  # Buffer size (sample number on each call)
 LABELS = ['backward', 'forward', 'left', 'right', 'stop']
-THRESHOLD = 10  # Próg głośności (RMS), ~-40DB
+THRESHOLD = 20  # Próg głośności (RMS), ~-40DB
 SWIDTH = 2
 SHORT_NORMALIZE = (1.0/32768.0)
 DELAY_AFTER_THRESHOLD = 0.4
@@ -31,61 +31,64 @@ class Voice_movement:
         self.model = tf.keras.models.load_model('AI.h5')
         self.audio = pyaudio.PyAudio()
         self.stream =  self.audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True,
-                frames_per_buffer=CHUNK)
+                input_device_index=0, frames_per_buffer=CHUNK)
+        self.current_direction = None
         
 
     def listen_and_predict_command(self):
-        print("Czekam na przekroczenie progu...")
-        recording = False
-        frames = []
-        silence_start_time = None
-
         while True:
-            input = self.stream.read(CHUNK, exception_on_overflow=False)
-            rms_value = self._rms(input)
+            print("[DEBUG] Waiting for the sound threshold of 20 dB to be exceeded.")
+            recording = False
+            frames = []
+            silence_start_time = None
 
-            if rms_value > THRESHOLD:
-                if not recording:
-                    print("Nagrywanie rozpoczęte...")
-                    recording = True
-                frames.append(input)
-                silence_start_time = None
-            elif recording:
-                if silence_start_time is None:
-                    silence_start_time = time()  # Rozpocznij mierzenie czasu ciszy
-                elif (time() - silence_start_time) >= DELAY_AFTER_THRESHOLD :
-                    print("Nagrywanie zakończone.")
-                    break
-                frames.append(input)
+            while True:
+                input = self.stream.read(CHUNK, exception_on_overflow=False)
+                rms_value = self._rms(input)
 
-        
-        if frames:    
-            audio_data = b''.join(frames)
-            self._save_audio(audio_data)
-            arr = ['recording.wav']
-            file = tf.data.Dataset.from_tensor_slices(arr)
-        
-            output = file.map(map_func=self._get_waveform, num_parallel_calls=AUTOTUNE)
-            waveform = list(output.as_numpy_iterator())[0]
+                if rms_value > THRESHOLD:
+                    if not recording:
+                        print("[DEBUG] Recording started")
+                        recording = True
+                    frames.append(input)
+                    silence_start_time = None
+                elif recording:
+                    if silence_start_time is None:
+                        silence_start_time = time()  # Rozpocznij mierzenie czasu ciszy
+                    elif (time() - silence_start_time) >= DELAY_AFTER_THRESHOLD :
+                        print("[DEBUG] Recording finished")
+                        break
+                    frames.append(input)
 
-            num_samples_to_silence = int(0.05 * RATE)
-            waveform = tf.concat([tf.zeros(num_samples_to_silence), waveform[num_samples_to_silence:]], 0)
+            
+            if frames:    
+                audio_data = b''.join(frames)
+                self._save_audio(audio_data)
+                arr = ['recording.wav']
+                file = tf.data.Dataset.from_tensor_slices(arr)
+            
+                output = file.map(map_func=self._get_waveform, num_parallel_calls=AUTOTUNE)
+                waveform = list(output.as_numpy_iterator())[0]
+
+                num_samples_to_silence = int(0.05 * RATE)
+                waveform = tf.concat([tf.zeros(num_samples_to_silence), waveform[num_samples_to_silence:]], 0)
 
 
-            spc = self._get_spectrogram(waveform)
-            print('Spectrogram shape:', spc.shape)
-             
-            # self.show_plot_for_spectrogram(waveform, spc)
-            spectrogram = output.map(map_func=self._get_spectrogram, num_parallel_calls=AUTOTUNE)
+                spc = self._get_spectrogram(waveform)
+                # print('[DEBUG] Spectrogram shape:', spc.shape)
+                
+                # self.show_plot_for_spectrogram(waveform, spc)
+                spectrogram = output.map(map_func=self._get_spectrogram, num_parallel_calls=AUTOTUNE)
 
-            audio = []
-            for x in spectrogram:
-                audio.append(x.numpy())
-            audio = np.array(audio)
-            print(audio)
-            prediction = np.argmax(self.model.predict(audio), axis=1)
-            print(f"Przewidywana komenda: {LABELS[prediction[0]]}")
-        os.remove('recording.wav')
+                audio = []
+                for x in spectrogram:
+                    audio.append(x.numpy())
+                audio = np.array(audio)
+                print(audio)
+                prediction = np.argmax(self.model.predict(audio), axis=1)
+                self.current_direction = f'{LABELS[prediction[0]]}'
+                print(f"[INFO] Predicted command: {LABELS[prediction[0]]}")
+            os.remove('recording.wav')
         
 
     def show_plot_for_spectrogram(self, waveform, spectrogram):
@@ -156,5 +159,5 @@ class Voice_movement:
         wf.close()
         print("Plik WAV zapisany jako 'recording.wav'")
     
-while True:
-    Voice_movement().listen_and_predict_command()
+# while True:
+#     Voice_movement().listen_and_predict_command()

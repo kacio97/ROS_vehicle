@@ -1,3 +1,4 @@
+from time import sleep
 from gz.msgs10.twist_pb2 import *
 from gz.msgs10.stringmsg_pb2 import *
 from gz.msgs10.laserscan_pb2 import *
@@ -5,6 +6,8 @@ from gz.msgs10.vector3d_pb2 import *
 from gz.transport13 import *
 
 from pynput import keyboard
+from voice_commands import Voice_movement
+import threading
 
 
 class Movement:
@@ -12,14 +15,32 @@ class Movement:
         print(f'[DEBUG] INIT STEERING OF VEHICLE')
         self.node_instance = Node()
         self.lidar = lidar
+
+        self.voice_command = Voice_movement()
+        self.cmd_thread = threading.Thread(target=self.voice_command.listen_and_predict_command)
+        self.cmd_thread.start()
+
+        self.cmd_move = threading.Thread(target=self._command_listener)
+        self.cmd_move.start()
         try:
-            print(f'[DEBUG] STEERING OF VEHICLE INITIALIZED')
+            print(f'[DEBUG] STEERING OF VEHICLE BY KEYBOARD INITIALIZED')
             with keyboard.Listener(on_press=self._on_press, on_release=self._on_release) as listener: listener.join()       
         except:
-            print(f'[DEBUG] INITIALIZATION STEERING OF VEHICLE FAILED')
+            print(f'[DEBUG] INITIALIZATION STEERING OF VEHICLE BY KEYBOARD FAILED')
+   
 
 
-        
+    def _command_listener(self):
+        current_direction = 'stop'
+        while True:
+            # print(f'[DEBUG] voice command result {self.voice_command.current_direction}')
+            if current_direction != self.voice_command.current_direction:
+                current_direction = self.voice_command.current_direction
+                print(f'[DEBUG] Current direction {current_direction}')
+                self.move_vehicle(str(current_direction))
+            # else:
+            #     self.move_vehicle(str(current_direction))
+            sleep(0.2)
        
     def _on_press(self, key):
         try:
