@@ -1,0 +1,20 @@
+2024-10-25 13:23:37.955 [info] (Client) Pylance async client (2024.10.1) started with python extension (2024.16.1)
+2024-10-25 13:23:38.570 [info] [Info  - 1:23:38 PM] (23957) Server root directory: file:///root/.vscode/extensions/ms-python.vscode-pylance-2024.10.1/dist
+2024-10-25 13:23:38.628 [info] [Info  - 1:23:38 PM] (23957) Pylance language server 2024.10.1 (pyright version 1.1.382, commit e46efc6b) starting
+2024-10-25 13:23:38.671 [info] [Info  - 1:23:38 PM] (23957) Starting service instance "ROS_vehicle"
+2024-10-25 13:23:38.899 [info] [Info  - 1:23:38 PM] (23957) No source files found.
+2024-10-25 13:23:39.058 [info] [Info  - 1:23:39 PM] Server process exited successfully
+2024-10-25 13:23:40.106 [info] (Client) Pylance async client (2024.10.1) started with python extension (2024.16.1)
+2024-10-25 13:23:40.789 [info] [Info  - 1:23:40 PM] (24127) Server root directory: file:///root/.vscode/extensions/ms-python.vscode-pylance-2024.10.1/dist
+2024-10-25 13:23:40.789 [info] [Info  - 1:23:40 PM] (24127) Pylance language server 2024.10.1 (pyright version 1.1.382, commit e46efc6b) starting
+2024-10-25 13:23:40.792 [info] [Info  - 1:23:40 PM] (24127) Starting service instance "ROS_vehicle"
+2024-10-25 13:23:40.857 [info] [Info  - 1:23:40 PM] (24127) Setting environmentName for service "ROS_vehicle": "3.10.12 (.venv venv)"
+2024-10-25 13:23:40.857 [info] [Info  - 1:23:40 PM] (24127) Setting pythonPath for service "ROS_vehicle": "/root/ROS_vehicle/.venv/bin/python"
+2024-10-25 13:23:40.858 [info] [Info  - 1:23:40 PM] (24127) No include entries specified; assuming /root/ROS_vehicle
+2024-10-25 13:23:40.858 [info] [Info  - 1:23:40 PM] (24127) Auto-excluding **/node_modules
+2024-10-25 13:23:40.858 [info] [Info  - 1:23:40 PM] (24127) Auto-excluding **/__pycache__
+2024-10-25 13:23:40.858 [info] [Info  - 1:23:40 PM] (24127) Auto-excluding **/.*
+2024-10-25 13:23:40.877 [info] [Info  - 1:23:40 PM] (24127) Assuming Python version 3.10.12.final.0
+2024-10-25 13:23:41.008 [info] [Info  - 1:23:41 PM] (24127) Found 9 source files
+2024-10-25 13:23:41.355 [info] [Info  - 1:23:41 PM] (24127) Background analysis(1) root directory: file:///root/.vscode/extensions/ms-python.vscode-pylance-2024.10.1/dist
+2024-10-25 13:23:41.357 [info] [Info  - 1:23:41 PM] (24127) Background analysis(1) started

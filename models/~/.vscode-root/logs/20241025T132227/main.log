@@ -1,0 +1,7 @@
+2024-10-25 13:22:28.295 [info] update#setState idle
+2024-10-25 13:22:36.991 [error] CodeWindow: failed to load (reason: ERR_FAILED, code: -2)
+2024-10-25 13:22:41.225 [info] Extension host with pid 23455 exited with code: 0, signal: unknown.
+2024-10-25 13:22:41.257 [error] [UtilityProcessWorker]: terminated unexpectedly with code 28456816, signal: unknown
+2024-10-25 13:22:41.274 [error] CodeWindow: failed to load (reason: ERR_FAILED, code: -2)
+2024-10-25 13:22:58.299 [info] update#setState checking for updates
+2024-10-25 13:22:58.344 [info] update#setState idle

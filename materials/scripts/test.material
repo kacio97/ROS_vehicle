@@ -1,0 +1,14 @@
+material Template/tiles
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture tile.jpg
+                scale 0.2 0.2
+            }
+        }
+    }
+}
