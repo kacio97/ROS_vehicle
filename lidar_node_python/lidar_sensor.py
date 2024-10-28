@@ -112,10 +112,12 @@ class Lidar:
         # 241-400: center
         # 401-560: left side
         
-        self.right_side = ranges[80:240]
-        self.left_side = ranges[400:560]
-        self.front_side = ranges[240:400]
-        self.rear_side = ranges[-80:] + ranges[:80]
+        #self.right_side = ranges[80:240]
+        #self.left_side = ranges[400:560]
+        self.right_side = ranges[:]
+        self.left_side = ranges[:]
+        self.front_side = ranges[280:380]
+        self.rear_side = ranges[-60:] + ranges[:60]
 
         
         self._is_safe_left_side_of_vehicle = self.analyze_side_of_vehicle(self.left_side, 'left')
@@ -153,37 +155,66 @@ class Lidar:
         elif not self._is_safe_right_side_of_vehicle and self._blocked_right == False:
             self._blocked_right = True
             self.stop_vehicle()
-        
-
-        # print(f'[DEBUG] PARTICLES ANALYZED')  
-
+            
     
     def analyze_side_of_vehicle(self, particles, side):
         # PL
         # Ta metoda analizuje czasteczki pobrane z lidara
         # nastepnie decyduje czy pojazd znajduje sie
         # w bezpiecznej odleglosci czy nie
-        # odlegosc <= 2 jest pogladowa i warto by kiedys to zoptymalizowac
         # pod kadtem prawidlowego decydowania czy pojazd jest bezpieczny
-        # ENG
-        # This method analyzing particles collected from lidar
-        # and decide if distance is safe or not
         # @return boolean
-        for particle in particles:
-            if particle == 'inf':
-                continue        
-            if float(particle) <= 2:
-                # print(f'[DEBUG] Distance on {side} is not safe {particle}')
-                return False       
-        # print(f'[DEBUG] Distance on {side} is safe {particle}')        
+        index = 0
+
+        for particle in particles:     
+            if side == 'left' or side == 'right':
+                if particle == 'inf':
+                    continue 
+                # PB - bok
+                if index <= 200 or index >= 120:
+                    if float(particle) < 0.9:
+                        return False
+                # PP-rog
+                elif index >= 200 or index <= 280:
+                    if float(particle) < 1.3:
+                        return False
+                # P - srodek
+                elif index >= 280 or index <= 380:
+                    if float(particle) < 1.4:
+                        return False
+                # LP-rog
+                elif index >= 380 or index <= 440:
+                    if float(particle) < 1.3:
+                        return False
+                # LB - bok
+                elif index >= 440 or index <= 520: 
+                    if float(particle) < 0.9:
+                        return False  
+                # LT - rog
+                elif index >= 520 or index <= 580: 
+                    if float(particle) < 1.2:
+                        return False
+                # PT - rog
+                elif index >= 60 or index <= 120: 
+                    if float(particle) < 1.2:
+                        return False
+                # T - srodek
+                elif index >= 580 or index <= 60: 
+                    if float(particle) < 1.4:
+                        return False
+ 
+            elif side == 'front' or side == 'rear':
+                if particle == 'inf':
+                    continue
+                if float(particle) <= 1.5:
+                    return False  
+            index += 1        
         return True
 
     def stop_vehicle(self):
         # PL
         # Zatrzymaj pojazd jesli dystans dla wybranej strony pojazdu 
-        # jest mniejszy niz ~1.5 metra
-        # ENG
-        # Stops vehicle if distance in exact side is closer than ~1.5 meter
+        # nie jest w bezpiecznej pozycji
         print(f'[DEBUG] - IN STOP VEHICLE INITIALIZE')
         node = Node()
         message = Twist()

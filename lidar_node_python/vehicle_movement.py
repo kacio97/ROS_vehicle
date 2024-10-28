@@ -33,14 +33,11 @@ class Movement:
     def _command_listener(self):
         current_direction = 'stop'
         while True:
-            # print(f'[DEBUG] voice command result {self.voice_command.current_direction}')
             if current_direction != self.voice_command.current_direction:
                 current_direction = self.voice_command.current_direction
                 print(f'[DEBUG] Current direction {current_direction}')
                 self.move_vehicle(str(current_direction))
-            # else:
-            #     self.move_vehicle(str(current_direction))
-            sleep(0.2)
+            sleep(0.1)
        
     def _on_press(self, key):
         try:
@@ -96,15 +93,15 @@ class Movement:
 
         if direction == 'forward' and self._check_if_region_is_safe(direction):
             message.angular.z = 0.0
-            message.linear.x = 0.5
+            message.linear.x = 1.3
         elif direction == 'backward' and self._check_if_region_is_safe(direction):
             message.angular.z = 0.0
-            message.linear.x = -0.5
+            message.linear.x = -1.3
         elif direction == 'left' and self._check_if_region_is_safe(direction):
-            message.angular.z = 0.5
+            message.angular.z = 0.8
             message.linear.x = 0.0
         elif direction == 'right' and self._check_if_region_is_safe(direction):
-            message.angular.z = -0.5
+            message.angular.z = -0.8
             message.linear.x = 0.0
         elif direction == 'stop':
             message.angular.z = 0.0
@@ -116,3 +113,8 @@ class Movement:
             print(f'[INFO] Successfully send {message}')
         else:
             print(f'[ERROR] Failed to send {message} message')
+
+        #self.right_side = ranges[80:240]
+        #self.left_side = ranges[400:560]
+        # self.front_side = ranges[240:400]
+        # self.rear_side = ranges[-80:] + ranges[:80]

@@ -13,10 +13,10 @@ import wave
 import speech_recognition
 
 # audio settings
-RATE = 48000  # (44kHz)
+RATE = 48000  # (48kHz)
 CHUNK = 1024  # Buffer size (sample number on each call)
 LABELS = ['backward', 'forward', 'left', 'right', 'stop']
-THRESHOLD = 20  # Próg głośności (RMS), ~-40DB
+THRESHOLD = 25  # Próg głośności (RMS), ~-40DB
 SWIDTH = 2
 SHORT_NORMALIZE = (1.0/32768.0)
 DELAY_AFTER_THRESHOLD = 0.4
@@ -37,7 +37,7 @@ class Voice_movement:
 
     def listen_and_predict_command(self):
         while True:
-            print("[DEBUG] Waiting for the sound threshold of 20 dB to be exceeded.")
+            print("[DEBUG] Waiting for the sound threshold of 25 dB to be exceeded.")
             recording = False
             frames = []
             silence_start_time = None
@@ -65,26 +65,19 @@ class Voice_movement:
                 audio_data = b''.join(frames)
                 self._save_audio(audio_data)
                 arr = ['recording.wav']
+                
                 file = tf.data.Dataset.from_tensor_slices(arr)
-            
                 output = file.map(map_func=self._get_waveform, num_parallel_calls=AUTOTUNE)
                 waveform = list(output.as_numpy_iterator())[0]
-
                 num_samples_to_silence = int(0.05 * RATE)
                 waveform = tf.concat([tf.zeros(num_samples_to_silence), waveform[num_samples_to_silence:]], 0)
-
-
-                spc = self._get_spectrogram(waveform)
-                # print('[DEBUG] Spectrogram shape:', spc.shape)
-                
-                # self.show_plot_for_spectrogram(waveform, spc)
                 spectrogram = output.map(map_func=self._get_spectrogram, num_parallel_calls=AUTOTUNE)
-
+                
                 audio = []
+
                 for x in spectrogram:
                     audio.append(x.numpy())
                 audio = np.array(audio)
-                print(audio)
                 prediction = np.argmax(self.model.predict(audio), axis=1)
                 self.current_direction = f'{LABELS[prediction[0]]}'
                 print(f"[INFO] Predicted command: {LABELS[prediction[0]]}")
@@ -159,5 +152,3 @@ class Voice_movement:
         wf.close()
         print("Plik WAV zapisany jako 'recording.wav'")
     
-# while True:
-#     Voice_movement().listen_and_predict_command()
