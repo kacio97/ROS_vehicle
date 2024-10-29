@@ -1,0 +1,47 @@
+@startuml voice_analyzer
+class VoiceAnalyzer {
+    + data_dir: pathlib.Path
+    + commands: np.array
+    + filenames: tf.data.Dataset
+    + num_samples: int
+    + train_files: tf.data.Dataset
+    + val_files: tf.data.Dataset
+    + test_files: tf.data.Dataset
+    + files_data_set: tf.data.Dataset
+    + model: tf.keras.Model
+    + history: tf.keras.callbacks.History
+    
+    + __init__()
+    + start_analyze()
+    + show_charts_for_waveform()
+    + show_charts_for_spectograms()
+    + show_plot_for_one_waveform_and_spectogram()
+    + prepare_data_set()
+    + prepare_model()
+    + train_model()
+    + show_training_and_validation_loss_curves()
+    + test_model_efficiency()
+    - _plot_spectrogram(spectrogram, ax: plt.Axes)
+    - _decode_audio(audio_binary: tf.Tensor): tf.Tensor
+    - _get_waveform_and_label(file_path: tf.Tensor): Tuple[tf.Tensor, tf.Tensor]
+    - _get_label(file_path: tf.Tensor): tf.Tensor
+    - _get_spectrogram(waveform: tf.Tensor): tf.Tensor
+    - _get_spectrogram_and_label_id(audio: tf.Tensor, label: tf.Tensor): Tuple[tf.Tensor, tf.Tensor]
+    - _preprocess_dataset(files: tf.data.Dataset): tf.data.Dataset
+}
+
+class pathlib.Path
+class tf.data.Dataset
+class tf.Tensor
+class tf.keras.Model
+class tf.keras.callbacks.History
+class plt.Axes
+
+VoiceAnalyzer --> pathlib.Path : uses
+VoiceAnalyzer --> tf.data.Dataset : uses
+VoiceAnalyzer --> tf.Tensor : uses
+VoiceAnalyzer --> tf.keras.Model : uses
+VoiceAnalyzer --> tf.keras.callbacks.History : uses
+VoiceAnalyzer --> plt.Axes : uses
+
+@enduml

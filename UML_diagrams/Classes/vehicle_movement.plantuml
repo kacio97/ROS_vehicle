@@ -1,0 +1,53 @@
+@startuml Vehicle_movement
+class Movement {
+    + node_instance: Node
+    + lidar: Lidar
+    + voice_command: VoiceCommands
+    + cmd_thread: Thread
+    + cmd_move: Thread
+
+    + __init__(lidar: Lidar)
+    + move_vehicle(direction: str)
+    - _command_listener()
+    - _on_press(key: keyboard.Key)
+    - _on_release(key: keyboard.Key)
+    - _check_if_region_is_safe(direction: str): bool  
+}
+
+class Node {
+    + subscribe(msg_type: type, topic: str, callback: callable): bool
+    + advertise(topic: str, msg_type: type)
+}
+
+class Twist {
+    - angular: Vector3d
+    - linear: Vector3d
+}
+
+class VoiceCommands {
+    + listen_and_predict_command()
+    - current_direction: str
+}
+
+class Lidar {
+    + get_is_safe_front_side_of_vehicle(): bool
+    + get_is_safe_rear_side_of_vehicle(): bool
+    + get_is_safe_left_side_of_vehicle(): bool
+    + get_is_safe_right_side_of_vehicle(): bool
+}
+
+class Thread {
+}
+
+class keyboard.Listener {
+    + join()
+}
+
+Movement --> Node : uses
+Movement --> Twist : uses
+Movement --> VoiceCommands : uses
+Movement --> Lidar : uses
+Movement --> Thread : uses
+Movement --> keyboard.Listener : uses
+
+@enduml

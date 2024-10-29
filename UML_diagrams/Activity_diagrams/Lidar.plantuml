@@ -1,0 +1,39 @@
+@startuml lidar
+|Lidar|
+start
+partition Lidar Activity{
+    #LightGreen:Initialize constructor;
+    if (Initialized) then (yes)
+        group GZ.transport
+            #LightGreen :Subscribe for LIDAR topic;
+        end group
+        if (Subscribed) then (yes)
+            #LightGreen:Start collection of LIDAR data;
+            repeat 
+            #LightGreen:Update data set;
+                group Analyze Particles
+                    #LightYellow:Analyze particles for each side of vehicle;
+                    if (Is the vehicle side safe) then (yes)
+                        #LightYellow :Update flag "True", separate for each side;
+                    else (no)
+                        #pink :Update flag "False", separate for each side;
+                        group GZ.msgs
+                            if (Send message to stop) then (sent)
+                                #LightYellow: Vehicle stopped;
+                            else (failed)
+                                #pink :Show error and continue;
+                            endif
+                        end group
+                    endif
+                end group
+            repeat while (Lidar collecting data) is (collecting) not (not collecting)
+        else (no)
+            #pink :Show Error;
+        endif
+    else (no)
+        #pink :Show Error;
+    endif
+}
+    
+stop
+@enduml

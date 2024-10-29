@@ -1,0 +1,52 @@
+@startuml vehicle_movement
+|Movement|
+start
+partition Vehicle Movement{
+#LightGreen:Constructor Initialization;
+        if(Initialized?) then (yes)
+        else (no)
+            #pink:Show error;
+            stop
+        endif
+
+        if (Start thread with command listening and prediction) then (success)
+        else (failed)
+            #pink :Show error;
+            stop
+        endif
+
+         if (Start thread with movement by command) then (success)
+        else (failed)
+            #pink :Show error;
+            stop
+        endif
+    group Move Vehicle
+        repeat
+            group Voice Commands
+                #LightGreen:Update direction;
+            end group
+                if (Current direction) then (different)
+                    #LightGreen:Set new direction;
+                    group Lidar analyzer
+                        #LightGreen:Check if region is safe;
+                    end group
+                    if (region safe?) then (yes)
+                        group GZ.msgs
+                            if (Send message with new direction) then (sent)
+                                #LightYellow :Vehicle is moving in a new direction;
+                            else (failed)
+                                #pink :Show error and continue without update direction;
+                            endif
+                        end group
+                    else (no)
+                        #pink :Dangerous area, cannot move vehicle;
+                    endif
+                else (Same)
+                    #LightBlue:Continue Moving in the same direction;
+                endif
+        repeat while (Movement Active?) is (active) not (inactive)
+    end group
+}
+
+stop
+@enduml

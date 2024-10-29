@@ -1,0 +1,32 @@
+@startuml voice_commands
+class VoiceCommands {
+    + model: tf.keras.Model
+    + audio: pyaudio.PyAudio
+    + stream: pyaudio.Stream
+    + current_direction: str
+
+    + __init__() 
+    + listen_and_predict_command()
+    + show_plot_for_spectrogram(waveform: tf.Tensor, spectrogram: tf.Tensor)
+    - _calculate_volume(frame: bytes): float
+    - _decode_audio(audio_binary: tf.Tensor): tf.Tensor
+    - _get_waveform(audio: str): tf.Tensor
+    - _get_spectrogram(waveform: tf.Tensor): tf.Tensor
+    - _save_audio(data: bytes)
+}
+
+class tf.keras.Model
+class pyaudio.PyAudio
+class pyaudio.Stream
+class tf.Tensor
+class wave.Wave_write
+class plt.Axes
+
+VoiceCommands --> tf.keras.Model : uses
+VoiceCommands --> pyaudio.PyAudio : uses
+VoiceCommands --> pyaudio.Stream : uses
+VoiceCommands --> tf.Tensor : uses
+VoiceCommands --> wave.Wave_write : creates
+VoiceCommands --> plt.Axes : uses
+
+@enduml

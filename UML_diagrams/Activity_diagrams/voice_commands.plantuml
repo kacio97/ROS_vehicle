@@ -1,0 +1,55 @@
+@startuml Voice commands
+|Voice commands|
+start
+
+partition Voice Commands {
+    #LightGreen :Initialization;
+        group TensorFlow
+            if (Load AI model) then (Loaded)
+            else (Failed to load)
+                #pink :Show Error;
+                end
+            endif
+        endgroup
+
+        group PyAudio
+            if (Turn On microphone) then (On)
+                #LightYellow :Setup device;
+            else (Off)
+                #pink :Show Error;
+                end
+            endif
+        endgroup
+    if (Initialized) then (yes)
+
+        group Listen and predict command
+            repeat
+                #LightYellow :Start to listen for input from microphone;
+                #LightYellow :Calculate input volume;
+                    if (Input volume > 20db) then (start recording)
+                        group Prepare data for model
+                            #LightBlue :Save recorded data as WAV file;
+                            group TensorFlow
+                                #LightBlue :Prepare dataset;
+                            endgroup
+                            #LightBlue :Convert data into waveform;
+                            #LightBlue :Convert waveform into spectrogram;
+                        end group
+
+                        group TensorFlow
+                            #LightYellow :Command prediction with spectrogram usage by AI model;
+                        endgroup
+                        #LightYellow :Save predicted result;
+                    else (No recording)
+                    endif
+
+            repeat while (Microphone is listening) is (yes) not (no)
+        end group
+    else (no)
+        #Pink :Show Error;
+    endif
+    
+}
+
+stop
+@enduml

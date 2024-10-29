@@ -1,0 +1,52 @@
+@startuml Lidar
+class Lidar {
+    + topic: str
+    + lidar_node: Node
+    + data_listener: Thread
+    + msgs: LaserScan
+    + left_side: list
+    + right_side: list
+    + front_side: list
+    + rear_side: list
+    - _blocked_front: bool
+    - _blocked_rear: bool
+    - _blocked_left: bool
+    - _blocked_right: bool
+    - _is_safe_left_side_of_vehicle: bool
+    - _is_safe_right_side_of_vehicle: bool
+    - _is_safe_front_side_of_vehicle: bool
+    - _is_safe_rear_side_of_vehicle: bool
+    - _is_stopped: bool
+
+    + start_lidar()
+    + listen_for_data()
+    + get_is_safe_left_side_of_vehicle(): bool
+    + get_is_safe_right_side_of_vehicle(): bool
+    + get_is_safe_front_side_of_vehicle(): bool
+    + get_is_safe_rear_side_of_vehicle(): bool
+    + set_is_stopped(value: bool)
+    + collect_lidar_data(msg: LaserScan)
+    + analyze_particles(ranges: list)
+    + analyze_side_of_vehicle(particles: list, side: str): bool
+    + stop_vehicle()
+}
+
+class Node {
+    + subscribe(msg_type: type, topic: str, callback: callable): bool
+    + advertise(topic: str, msg_type: type)
+}
+
+class Twist {
+    - angular: Vector3d
+    - linear: Vector3d
+}
+
+class LaserScan {
+    - ranges: list
+}
+
+Lidar --> Node : uses
+Lidar --> Thread : uses
+Lidar --> LaserScan : uses
+Lidar --> Twist : uses
+@enduml

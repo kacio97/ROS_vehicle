@@ -1,0 +1,74 @@
+@startuml Voice analyzer
+|Voice analyzer|
+start
+
+partition Voice analyzer {
+    if (Initialization) then (initialized)
+
+
+        group Start analyze
+            group Prepare Data set
+                if (Read files) then (yes)
+                    #LightBlue :Read samples from directiories;
+                else (No)
+                    #Pink :Reading Error;
+                    stop
+                endif
+                #LightBlue :Set avaialable commands;
+                #LightBlue :Random collected samples;
+                #LightBlue :Split data into 3 parts "(train/validation/testing)";
+            endgroup
+            #LightYellow :Convert Dataset into Waveform;
+            if (Convertion) then (passed)
+            else (failed)
+                #Pink :Show Error;
+                stop
+            endif
+            #LightYellow :Convert Waveform into Spectrogram;
+            if (Convertion) then (passed)
+            else (failed)
+                #Pink :Show Error;
+                stop
+            endif
+            #LightYellow :Show charts for Waveform and Spectrogram;
+            #LightYellow :Preprocess Dataset;
+            group Prepare Model
+                #LightBlue :Save input shape;
+                group TF.Keras
+                    #LightBlue :Normalize Dataset;
+                    #LightBlue :Build and configure model;
+                    if (Model preparation) then (prepared)
+                        #LightBlue :Summarize model;
+                        #LightBlue :Compiling the model;
+                        if (Compiled) then (yes)
+                        else (no)
+                            #Pink :Show Error;
+                            stop
+                        endif
+                    else (failed)
+                        #Pink :Show Error;
+                        stop
+                    endif
+                endgroup
+            endgroup
+            group TF.Keras
+                #LightYellow :Train Model;
+            endgroup
+            if (Trained) then (finished)
+            #LightYellow :Show training and validation loss chart;
+            group TF.Keras
+                #LightYellow :Test model efficiency;
+                #LightYellow :Save model;
+            endgroup
+            else (failed)
+                #Pink :Show Error;
+            endif
+            
+        endgroup
+    else (Failed)
+        #Pink :Show Error;
+    endif
+}
+
+end
+@enduml
